@@ -17,7 +17,7 @@ jobs:
       - uses: GoogleCloudPlatform/release-please-action@v3.2.2
         id: release
         with:
-          release-type: node
+          release-type: simple
           default-branch: ${{ steps.extract_branch.outputs.branch }}
           token: "${{ secrets.ACTION_TOKEN }}"
 
