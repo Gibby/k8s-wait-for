@@ -50,7 +50,7 @@ get_pod_state() {
     get_pod_state_flags="$2"
     # We want this to output $ without expansion
     # shellcheck disable=SC2016
-    get_pod_state_output1=$(kubectl get pods "$get_pod_state_name" $get_pod_state_flags $KUBECTL_ARGS -o go-template='
+    if ! get_pod_state_output1=$(kubectl get pods "$get_pod_state_name" $get_pod_state_flags $KUBECTL_ARGS -o go-template='
 {{- define "checkStatus" -}}
   {{- $rootStatus := .status }}
   {{- $hasReadyStatus := false }}
@@ -86,8 +86,8 @@ get_pod_state() {
     {{- end -}}
 {{- else -}}
     {{ template "checkStatus" . }}
-{{- end -}}' 2>&1)
-    if [ $? -eq 0 ]; then
+{{- end -}}' 2>&1); then
+    #if [ $? -ne 0 ]; then
         if expr match "$get_pod_state_output1" '\(.*not found$\)' 1>/dev/null ; then
             echo "No pods found, waiting for them to be created..." >&2
             echo "$get_pod_state_output1" >&2
