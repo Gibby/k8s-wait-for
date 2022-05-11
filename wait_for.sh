@@ -14,7 +14,7 @@ TREAT_ERRORS_AS_READY=0
 
 usage() {
 cat <<EOF
-This script waits until a job, pod or service enter ready state. 
+This script waits until a job, pod or service enter ready state.
 
 ${0##*/} job [<job name> | -l<kubectl selector>]
 ${0##*/} pod [<pod name> | -l<kubectl selector>]
@@ -46,9 +46,11 @@ exit 1
 # Job or set of pods is considered ready if all of the are ready
 # example output with 3 pods, where 2 are not ready would be: "false false"
 get_pod_state() {
-    get_pod_state_name="$1"
-    get_pod_state_flags="$2"
-    get_pod_state_output1=$(kubectl get pods "$get_pod_state_name" $get_pod_state_flags $KUBECTL_ARGS -o go-template='
+    get_pod_state_name=$1
+    get_pod_state_flags=$2
+    # We want this to output $ without expansion and can not double quote
+    # shellcheck disable=SC2016 disable=SC2086
+    if ! get_pod_state_output1=$(kubectl get pods "$get_pod_state_name" $get_pod_state_flags $KUBECTL_ARGS -o go-template='
 {{- define "checkStatus" -}}
   {{- $rootStatus := .status }}
   {{- $hasReadyStatus := false }}
@@ -84,26 +86,27 @@ get_pod_state() {
     {{- end -}}
 {{- else -}}
     {{ template "checkStatus" . }}
-{{- end -}}' 2>&1)
-    if [ $? -ne 0 ]; then
-        if expr match "$get_pod_state_output1" '\(.*not found$\)' 1>/dev/null ; then
+{{- end -}}' 2>&1); then
+    #if [ $? -ne 0 ]; then
+        #if expr match "$get_pod_state_output1" '\(.*not found$\)' 1>/dev/null ; then
+        if echo "$get_pod_state_output1" | grep -q "not found"; then
             echo "No pods found, waiting for them to be created..." >&2
             echo "$get_pod_state_output1" >&2
         else
             echo "$get_pod_state_output1" >&2
             kill -s TERM $TOP_PID
         fi
-    elif [ $DEBUG -ge 2 ]; then
+    elif [ "$DEBUG" -ge 2 ]; then
         echo "$get_pod_state_output1" >&2
     fi
     if [ $TREAT_ERRORS_AS_READY -eq 1 ]; then
         get_pod_state_output1=$(printf "%s" "$get_pod_state_output1" | sed 's/False:Error//g' )
-        if [ $DEBUG -ge 1 ]; then
+        if [ "$DEBUG" -ge 1 ]; then
             echo "$get_pod_state_output1" >&2
         fi
     fi
     get_pod_state_output2=$(printf "%s" "$get_pod_state_output1" | xargs )
-    if [ $DEBUG -ge 1 ]; then
+    if [ "$DEBUG" -ge 1 ]; then
         echo "$get_pod_state_output2" >&2
     fi
     echo "$get_pod_state_output2"
@@ -113,11 +116,13 @@ get_pod_state() {
 # example output with 2 services each matching a single pod would be: "falsefalse"
 get_service_state() {
     get_service_state_name="$1"
-    get_service_state_selectors=$(kubectl get service "$get_service_state_name" $KUBECTL_ARGS -ojson | jq -cr 'if . | has("items") then .items[] else . end | [ .spec.selector | to_entries[] | "\(.key)=\(.value)" ] | join(",") ' 2>&1)
-    if [ $? -ne 0 ]; then
+    # Can not double quote
+    # shellcheck disable=SC2086
+    if ! get_service_state_selectors=$(kubectl get service "$get_service_state_name" $KUBECTL_ARGS -ojson | jq -cr 'if . | has("items") then .items[] else . end | [ .spec.selector | to_entries[] | "\(.key)=\(.value)" ] | join(",") ' 2>&1); then
+    #if [ $? -ne 0 ]; then
         echo "$get_service_state_selectors" >&2
         kill -s TERM $TOP_PID
-    elif [ $DEBUG -ge 2 ]; then
+    elif [ "$DEBUG" -ge 2 ]; then
         echo "$get_service_state_selectors" >&2
     fi
     get_service_state_states=""
@@ -141,35 +146,37 @@ get_service_state() {
 # in a 'kubectl describe' job output.
 get_job_state() {
     get_job_state_name="$1"
-    get_job_state_output=$(kubectl describe jobs "$get_job_state_name" $KUBECTL_ARGS 2>&1)
-    if [ $? -ne 0 ]; then
+    # Can not double quote
+    # shellcheck disable=SC2086
+    if ! get_job_state_output=$(kubectl describe jobs "$get_job_state_name" $KUBECTL_ARGS 2>&1); then
+    #if [ $? -ne 0 ]; then
         echo "$get_job_state_output" >&2
         kill -s TERM $TOP_PID
-    elif [ $DEBUG -ge 2 ]; then
+    elif [ "$DEBUG" -ge 2 ]; then
         echo "$get_job_state_output" >&2
     fi
-    if [ "$get_job_state_output" == "" ] || echo "$get_job_state_output" | grep -q "No resources found"; then
+    if [ "$get_job_state_output" = "" ] || echo "$get_job_state_output" | grep -q "No resources found"; then
         echo "wait_for.sh: No jobs found!" >&2
         kill -s TERM $TOP_PID
     fi
-    get_job_state_output1=$(printf "%s" "$get_job_state_output" | sed -nr 's#.*:[[:blank:]]+([[:digit:]]+) [[:alpha:]]+ / ([[:digit:]]+) [[:alpha:]]+ / ([[:digit:]]+) [[:alpha:]]+.*#\1:\2:\3#p' 2>&1)
-    if [ $? -ne 0 ]; then
+    if ! get_job_state_output1=$(printf "%s" "$get_job_state_output" | sed -nr 's#.*:[[:blank:]]+([[:digit:]]+) [[:alpha:]]+ / ([[:digit:]]+) [[:alpha:]]+ / ([[:digit:]]+) [[:alpha:]]+.*#\1:\2:\3#p' 2>&1); then
+    #if [ $? -ne 0 ]; then
         echo "$get_job_state_output" >&2
         echo "$get_job_state_output1" >&2
         kill -s TERM $TOP_PID
-    elif [ $DEBUG -ge 2 ]; then
+    elif [ "$DEBUG" -ge 2 ]; then
         echo "$get_job_state_output1" >&2
     fi
 
     # Extract number of <running>:<succeeded>:<failed>
     get_job_state_output1=$(printf "%s" "$get_job_state_output" | sed -nr 's#.*:[[:blank:]]+([[:digit:]]+) [[:alpha:]]+ / ([[:digit:]]+) [[:alpha:]]+ / ([[:digit:]]+) [[:alpha:]]+.*#\1:\2:\3#p' 2>&1)
-    if [ $DEBUG -ge 1 ]; then
+    if [ "$DEBUG" -ge 1 ]; then
         echo "$get_job_state_output1" >&2
     fi
-    
+
     # Map triplets of <running>:<succeeded>:<failed> to not ready (emit 1) state
     if [ $TREAT_ERRORS_AS_READY -eq 0 ]; then
-        # Two conditions: 
+        # Two conditions:
         #   - pods are distributed between all 3 states with at least 1 pod running - then emit 1
         #   - or more then 1 pod have failed and some are completed - also emit 1
         sed_reg='-e s/^[1-9][[:digit:]]*:[[:digit:]]+:[[:digit:]]+$/1/p -e s/^0:[[:digit:]]+:[1-9][[:digit:]]*$/1/p'
@@ -185,14 +192,14 @@ get_job_state() {
         #   - when no pod is running and at least one is completed - all is fine
         sed_reg='-e s/^[1-9][[:digit:]]*:[[:digit:]]+:[[:digit:]]+$/1/p -e s/^0:0:[[:digit:]]+$/1/p'
     fi
-    
-    get_job_state_output2=$(printf "%s" "$get_job_state_output1" | sed -nr $sed_reg 2>&1)
-    if [ $DEBUG -ge 1 ]; then
+
+    get_job_state_output2=$(printf "%s" "$get_job_state_output1" | sed -nr "$sed_reg" 2>&1)
+    if [ "$DEBUG" -ge 1 ]; then
         echo "$get_job_state_output2" >&2
     fi
 
     get_job_state_output3=$(printf "%s" "$get_job_state_output2" | xargs )
-    if [ $DEBUG -ge 1 ]; then
+    if [ "$DEBUG" -ge 1 ]; then
         echo "$get_job_state_output3" >&2
     fi
     echo "$get_job_state_output3"
@@ -201,6 +208,8 @@ get_job_state() {
 wait_for_resource() {
     wait_for_resource_type=$1
     wait_for_resource_descriptor="$2"
+    # Can not double quote
+    # shellcheck disable=SC2086
     while [ -n "$(get_${wait_for_resource_type}_state "$wait_for_resource_descriptor")" ] ; do
         print_KUBECTL_ARGS="$KUBECTL_ARGS"
         [ "$print_KUBECTL_ARGS" != "" ] && print_KUBECTL_ARGS=" $print_KUBECTL_ARGS"
