@@ -1,7 +1,6 @@
 [![Latest Release](https://img.shields.io/github/v/release/Gibby/k8s-wait-for?logo=GitHub)](https://github.com/Gibby/k8s-wait-for/releases/latest)
 [![Docker Build and Publish](https://github.com/Gibby/k8s-wait-for/actions/workflows/docker.yml/badge.svg)](https://github.com/Gibby/k8s-wait-for/actions/workflows/docker.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/13ae180d9d204eb9ab46c93c2c65e730)](https://www.codacy.com/gh/Gibby/k8s-wait-for/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Gibby/k8s-wait-for&amp;utm_campaign=Badge_Grade)
-![Docker Image Version (latest semver)](https://img.shields.io/docker/v/gibby/k8s-wait-for?sort=semver)
 ![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/gibby/k8s-wait-for?sort=semver)
 # k8s-wait-for
 
