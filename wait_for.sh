@@ -14,7 +14,7 @@ TREAT_ERRORS_AS_READY=0
 
 usage() {
 cat <<EOF
-This script waits until a job, pod or service enter ready state. 
+This script waits until a job, pod or service enter ready state.
 
 ${0##*/} job [<job name> | -l<kubectl selector>]
 ${0##*/} pod [<pod name> | -l<kubectl selector>]
@@ -93,17 +93,17 @@ get_pod_state() {
             echo "$get_pod_state_output1" >&2
             kill -s TERM $TOP_PID
         fi
-    elif [ $DEBUG -ge 2 ]; then
+    elif [ "$DEBUG" -ge 2 ]; then
         echo "$get_pod_state_output1" >&2
     fi
     if [ $TREAT_ERRORS_AS_READY -eq 1 ]; then
         get_pod_state_output1=$(printf "%s" "$get_pod_state_output1" | sed 's/False:Error//g' )
-        if [ $DEBUG -ge 1 ]; then
+        if [ "$DEBUG" -ge 1 ]; then
             echo "$get_pod_state_output1" >&2
         fi
     fi
     get_pod_state_output2=$(printf "%s" "$get_pod_state_output1" | xargs )
-    if [ $DEBUG -ge 1 ]; then
+    if [ "$DEBUG" -ge 1 ]; then
         echo "$get_pod_state_output2" >&2
     fi
     echo "$get_pod_state_output2"
@@ -117,7 +117,7 @@ get_service_state() {
     if [ $? -ne 0 ]; then
         echo "$get_service_state_selectors" >&2
         kill -s TERM $TOP_PID
-    elif [ $DEBUG -ge 2 ]; then
+    elif [ "$DEBUG" -ge 2 ]; then
         echo "$get_service_state_selectors" >&2
     fi
     get_service_state_states=""
@@ -145,7 +145,7 @@ get_job_state() {
     if [ $? -ne 0 ]; then
         echo "$get_job_state_output" >&2
         kill -s TERM $TOP_PID
-    elif [ $DEBUG -ge 2 ]; then
+    elif [ "$DEBUG" -ge 2 ]; then
         echo "$get_job_state_output" >&2
     fi
     if [ "$get_job_state_output" == "" ] || echo "$get_job_state_output" | grep -q "No resources found"; then
@@ -157,19 +157,19 @@ get_job_state() {
         echo "$get_job_state_output" >&2
         echo "$get_job_state_output1" >&2
         kill -s TERM $TOP_PID
-    elif [ $DEBUG -ge 2 ]; then
+    elif [ "$DEBUG" -ge 2 ]; then
         echo "$get_job_state_output1" >&2
     fi
 
     # Extract number of <running>:<succeeded>:<failed>
     get_job_state_output1=$(printf "%s" "$get_job_state_output" | sed -nr 's#.*:[[:blank:]]+([[:digit:]]+) [[:alpha:]]+ / ([[:digit:]]+) [[:alpha:]]+ / ([[:digit:]]+) [[:alpha:]]+.*#\1:\2:\3#p' 2>&1)
-    if [ $DEBUG -ge 1 ]; then
+    if [ "$DEBUG" -ge 1 ]; then
         echo "$get_job_state_output1" >&2
     fi
-    
+
     # Map triplets of <running>:<succeeded>:<failed> to not ready (emit 1) state
     if [ $TREAT_ERRORS_AS_READY -eq 0 ]; then
-        # Two conditions: 
+        # Two conditions:
         #   - pods are distributed between all 3 states with at least 1 pod running - then emit 1
         #   - or more then 1 pod have failed and some are completed - also emit 1
         sed_reg='-e s/^[1-9][[:digit:]]*:[[:digit:]]+:[[:digit:]]+$/1/p -e s/^0:[[:digit:]]+:[1-9][[:digit:]]*$/1/p'
@@ -185,14 +185,14 @@ get_job_state() {
         #   - when no pod is running and at least one is completed - all is fine
         sed_reg='-e s/^[1-9][[:digit:]]*:[[:digit:]]+:[[:digit:]]+$/1/p -e s/^0:0:[[:digit:]]+$/1/p'
     fi
-    
+
     get_job_state_output2=$(printf "%s" "$get_job_state_output1" | sed -nr $sed_reg 2>&1)
-    if [ $DEBUG -ge 1 ]; then
+    if [ "$DEBUG" -ge 1 ]; then
         echo "$get_job_state_output2" >&2
     fi
 
     get_job_state_output3=$(printf "%s" "$get_job_state_output2" | xargs )
-    if [ $DEBUG -ge 1 ]; then
+    if [ "$DEBUG" -ge 1 ]; then
         echo "$get_job_state_output3" >&2
     fi
     echo "$get_job_state_output3"
