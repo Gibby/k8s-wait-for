@@ -1,9 +1,8 @@
-[![Latest Release](https://img.shields.io/github/v/release/groundnuty/k8s-wait-for?logo=GitHub)](https://github.com/groundnuty/k8s-wait-for/releases/latest)
-[![Build Status](https://travis-ci.org/groundnuty/k8s-wait-for.svg?branch=master)](https://travis-ci.org/groundnuty/k8s-wait-for)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9e61e311725b4015a24f294c591746b1)](https://www.codacy.com/app/groundnuty/k8s-wait-for?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=groundnuty/k8s-wait-for&amp;utm_campaign=Badge_Grade)
-[![Latest Docker Yag](https://img.shields.io/docker/v/groundnuty/k8s-wait-for?logo=docker)](https://microbadger.com/images/groundnuty/k8s-wait-for "Get your own version badge on microbadger.com")
-[![Latest Docker Tag Details](https://images.microbadger.com/badges/image/groundnuty/k8s-wait-for.svg?logo=docker)](https://microbadger.com/images/groundnuty/k8s-wait-for "Get your own image badge on microbadger.com")
-
+[![Latest Release](https://img.shields.io/github/v/release/Gibby/k8s-wait-for?logo=GitHub)](https://github.com/Gibby/k8s-wait-for/releases/latest)
+[![Docker Build and Publish](https://github.com/Gibby/k8s-wait-for/actions/workflows/docker.yml/badge.svg)](https://github.com/Gibby/k8s-wait-for/actions/workflows/docker.yml)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/13ae180d9d204eb9ab46c93c2c65e730)](https://www.codacy.com/gh/Gibby/k8s-wait-for/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Gibby/k8s-wait-for&amp;utm_campaign=Badge_Grade)
+![Docker Image Version (latest semver)](https://img.shields.io/docker/v/gibby/k8s-wait-for?sort=semver)
+![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/gibby/k8s-wait-for?sort=semver)
 # k8s-wait-for
 
 > This tool is still actively used and working stably despite not too frequent commits! Pull requests are most welcome!
@@ -15,14 +14,14 @@ A simple script that allows waiting for a k8s service, job or pods to enter the 
 You can start simple. Run it on your cluster in a namespace you already have something deployed:
 
 ```bash
-kubectl run --generator=run-pod/v1 k8s-wait-for --rm -it --image groundnuty/k8s-wait-for:v1.3 --restart Never --command /bin/sh
+kubectl run --generator=run-pod/v1 k8s-wait-for --rm -it --image ghcr.io/gibby/k8s-wait-for:edge --restart Never --command /bin/sh
 ```
 
 Read `--help` and play with it!
 
 ```bash
 / > wait_for.sh -h
-This script waits until a job, pod or service enter a ready state. 
+This script waits until a job, pod or service enter a ready state.
 
 wait_for.sh job [<job name> | -l<kubectl selector>]
 wait_for.sh pod [<pod name> | -l<kubectl selector>]
@@ -86,26 +85,26 @@ spec:
     spec:
       initContainers:
         - name: wait-for-onezone
-          image: groundnuty/k8s-wait-for:v1.3
+          image: ghcr.io/gibby/k8s-wait-for:edge
           imagePullPolicy: Always
           args:
             - "job"
             - "develop-onezone-ready-check"
         - name: wait-for-volume-ceph
-          image: groundnuty/k8s-wait-for:v1.3
+          image: ghcr.io/gibby/k8s-wait-for:edge
           imagePullPolicy: Always
           args:
             - "pod"
             - "-lapp=develop-volume-ceph-krakow"
         - name: wait-for-volume-gluster
-          image: groundnuty/k8s-wait-for:v1.3
+          image: ghcr.io/gibby/k8s-wait-for:edge
           imagePullPolicy: Always
           args:
             - "pod"
             - "-lapp=develop-volume-gluster-krakow"
       containers:
       - name: oneprovider
-        image: docker.onedata.org/oneprovider:ID-a3a9ff0d78
+        image: docker.onedata.org/oneprovider
         imagePullPolicy: Always
 ```
 
@@ -113,8 +112,8 @@ spec:
 
 This container is used extensively in deployments of Onedata system [onedata/charts](https://github.com/onedata/charts) to specify dependencies. It leverages Kubernetes [init containers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/), thus providing:
 
-- a detailed event log in `kubectl describe <pod>`, on what init container is pod hanging at the moment.
-- a comprehensive view in `kubectl get pods` output where init containers are shown in a form `Init:<ready>/<total>`
+  - a detailed event log in `kubectl describe <pod>`, on what init container is pod hanging at the moment.
+  - a comprehensive view in `kubectl get pods` output where init containers are shown in a form `Init:<ready>/<total>`
 
 Example output from the deployment run of ~16 pod with dependencies just after deployment:
 
@@ -206,7 +205,6 @@ or use these command lines which add services and deployments to the pods in tho
 
 `kubectl create rolebinding default-pod-reader --role=pod-reader --serviceaccount=default:default --namespace=default`
 
-An extensive discussion on the problem of granting necessary permisions and a number of example solutions can be found [here](https://github.com/groundnuty/k8s-wait-for/issues/6).
+An extensive discussion on the problem of granting necessary permisions and a number of example solutions can be found [here](https://github.com/gibby/k8s-wait-for/issues/6).
 
 Make sure the service account is mounted. `The connection to the server localhost:8080 was refused - did you specify the right host or port?` might indicate that the service account is not mounted to the pod. Double check wether your service account and pod define `automountServiceAccountToken: true`. If the service account is mounted, you should see files inside `/var/run/secrets/kubernetes.io/serviceaccount` folder, otherwise `/var/run/secrets/kubernetes.io` might not exist at all.
-
