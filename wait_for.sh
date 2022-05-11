@@ -46,11 +46,11 @@ exit 1
 # Job or set of pods is considered ready if all of the are ready
 # example output with 3 pods, where 2 are not ready would be: "false false"
 get_pod_state() {
-    get_pod_state_name="$1"
-    get_pod_state_flags="$2"
+    get_pod_state_name=$1
+    get_pod_state_flags=$2
     # We want this to output $ without expansion
     # shellcheck disable=SC2016
-    if ! get_pod_state_output1=$(kubectl get pods "$get_pod_state_name" $get_pod_state_flags $KUBECTL_ARGS -o go-template='
+    if ! get_pod_state_output1=$(kubectl get pods "$get_pod_state_name" $get_pod_state_flags "$KUBECTL_ARGS" -o go-template='
 {{- define "checkStatus" -}}
   {{- $rootStatus := .status }}
   {{- $hasReadyStatus := false }}
