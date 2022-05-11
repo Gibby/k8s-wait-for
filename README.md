@@ -111,8 +111,8 @@ spec:
 
 This container is used extensively in deployments of Onedata system [onedata/charts](https://github.com/onedata/charts) to specify dependencies. It leverages Kubernetes [init containers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/), thus providing:
 
-  - a detailed event log in `kubectl describe <pod>`, on what init container is pod hanging at the moment.
-  - a comprehensive view in `kubectl get pods` output where init containers are shown in a form `Init:<ready>/<total>`
+- a detailed event log in `kubectl describe <pod>`, on what init container is pod hanging at the moment.
+- a comprehensive view in `kubectl get pods` output where init containers are shown in a form `Init:<ready>/<total>`
 
 Example output from the deployment run of ~16 pod with dependencies just after deployment:
 
