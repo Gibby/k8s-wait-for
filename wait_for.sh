@@ -51,7 +51,7 @@ get_pod_state() {
   get_pod_state_flags="$2"
   # We want this to output $ in template without expansion
   # shellcheck disable=SC2016
-  if get_pod_state_output1=$(kubectl get pods "$get_pod_state_name" "$get_pod_state_flags" "$KUBECTL_ARGS" -o go-template='
+  if get_pod_state_output1=$(kubectl get pods "$get_pod_state_name" $get_pod_state_flags $KUBECTL_ARGS -o go-template='
 {{- define "checkStatus" -}}
   {{- $rootStatus := .status }}
   {{- $hasReadyStatus := false }}
