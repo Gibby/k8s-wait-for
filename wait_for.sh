@@ -88,7 +88,8 @@ get_pod_state() {
     {{ template "checkStatus" . }}
 {{- end -}}' 2>&1); then
     #if [ $? -ne 0 ]; then
-        if expr match "$get_pod_state_output1" '\(.*not found$\)' 1>/dev/null ; then
+        #if expr match "$get_pod_state_output1" '\(.*not found$\)' 1>/dev/null ; then
+        if echo "$get_pod_state_output1" | grep -q "not found"; then
             echo "No pods found, waiting for them to be created..." >&2
             echo "$get_pod_state_output1" >&2
         else
